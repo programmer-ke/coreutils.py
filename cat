@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('filenames', nargs="*")
-parser.add_argument('-n', action='store_true', dest='show_lineno')
+parser.add_argument('-n', '--number', action='store_true', dest='show_lineno')
 args = parser.parse_args()
 
 files = args.filenames or [sys.stdin]
