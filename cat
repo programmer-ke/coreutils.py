@@ -28,9 +28,13 @@ def print_file(f):
 
 
 for file in files:
-    try:
-        with open(file, "rt") as f:
-            print_file(f)
-    except TypeError:
-        # could be stdin
+    if hasattr(file, 'read'):
+        # file-like object
         print_file(file)
+    elif file == "-":
+        # stdin in args
+        print_file(sys.stdin)
+    else:
+        # filename provided
+        with open(file) as f:
+            print_file(f)

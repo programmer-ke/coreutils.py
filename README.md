@@ -51,3 +51,11 @@ $ ./cat <<EOF > somefile.txt
 > line 2
 > EOF
 ```
+
+### 8) stdin in argument list
+
+`-` anywhere in the argument list is assumed to be stdin
+
+```bash
+$ printf "sometext\n" | ./cat - somefile.txt
+```

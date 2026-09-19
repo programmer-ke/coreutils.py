@@ -91,6 +91,13 @@ EOF
     assert_equal "7. Here-document" "$tmp_actual" "$tmp_expected"
 }
 
+# --- test 8: stdin in argument list ---
+test_stdin_argument_list() {
+    cat data/file2.txt | "$CAT" data/file1.txt - data/multiline.txt > "$tmp_actual"
+    cat data/file1.txt data/file2.txt data/multiline.txt > "$tmp_expected"
+    assert_equal "8. stdin in argument list" "$tmp_actual" "$tmp_expected"
+}
+
 # --- run all tests ---
 main() {
     test_no_args
@@ -100,6 +107,7 @@ main() {
     test_append_file
     test_line_numbers
     test_heredoc
+    test_stdin_argument_list
 
     echo "----------------------------------------"
     echo "Results: $pass_count passed, $fail_count failed"
