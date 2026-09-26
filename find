@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+
+import argparse
+import pathlib
+
+default_path = '.'
+default_glob = '*'
+
+path = default_path
+glob = default_glob
+
+matches = pathlib.Path(path).rglob(glob)
+
+print(path)  # print starting point
+for p in matches:
+    print(f"{path}/{p}")  # default action is -print

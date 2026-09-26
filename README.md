@@ -59,3 +59,14 @@ $ ./cat <<EOF > somefile.txt
 ```bash
 $ printf "sometext\n" | ./cat - somefile.txt
 ```
+
+## Find
+
+Supported:
+
+### 1) No arguments lists everything in current directory
+
+```bash
+$ ./find
+```
+
