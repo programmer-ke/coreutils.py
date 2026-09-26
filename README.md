@@ -70,3 +70,14 @@ Supported:
 $ ./find
 ```
 
+### 2) No glob pattern lists everything in target directory
+
+```bash
+$ ./find data
+```
+
+### 3) Directory and glob pattern matches filtered files
+
+```bash
+$ ./find data -name *.txt
+```

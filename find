@@ -3,14 +3,36 @@
 import argparse
 import pathlib
 
-default_path = '.'
-default_glob = '*'
+DEFAULT_DIRECTORY = "."
+DEFAULT_GLOB_PATTERN = "*"
 
-path = default_path
-glob = default_glob
+parser = argparse.ArgumentParser(prog="find", description="Find files")
 
-matches = pathlib.Path(path).rglob(glob)
+parser.add_argument(
+    "directory", nargs="?", help="directory to search", default=DEFAULT_DIRECTORY
+)
+parser.add_argument(
+    "-name",
+    dest="glob_pattern",
+    action="store",
+    help="name pattern to match",
+    default=DEFAULT_GLOB_PATTERN,
+)
 
-print(path)  # print starting point
+args = parser.parse_args()
+
+directory = args.directory
+glob_pattern = args.glob_pattern
+
+matches = pathlib.Path(directory).rglob(glob_pattern)
+
+if glob_pattern == DEFAULT_GLOB_PATTERN:
+    print(directory)  # print starting point
+
+if directory == DEFAULT_DIRECTORY:
+    fmt_str = "./{path}"
+else:
+    fmt_str = "{path}"
+
 for p in matches:
-    print(f"{path}/{p}")  # default action is -print
+    print(fmt_str.format(path=p))  # default action is -print

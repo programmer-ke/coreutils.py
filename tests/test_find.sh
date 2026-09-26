@@ -46,18 +46,32 @@ actual=$(mktemp)
 expected=$(mktemp)
 trap 'rm -f "$actual" "$expected"' EXIT
 
-# --- Test 1: no arguments ---
+# --- Test 1.a: no arguments ---
 test_no_args() {
     "$FIND"  > "$actual"
     find > "$expected"
-    assert_sorted_equal "1. No arguments lists everything" "$actual" "$expected"
+    assert_sorted_equal "1.a No arguments lists everything" "$actual" "$expected"
 }
 
-# --- Test 2: find by name pattern ---
+# --- Test 1.b: no glob pattern ---
+test_no_glob_pattern() {
+    "$FIND" data > "$actual"
+    find data > "$expected"
+    assert_sorted_equal "1.b No glob pattern lists everything in destination" "$actual" "$expected"
+}
+
+# --- Test 2.a: find by name pattern current directory ---
 test_name_glob() {
     "$FIND" . -name "*.txt" > "$actual"
     find . -name "*.txt" > "$expected"
-    assert_sorted_equal "2. Find by name pattern" "$actual" "$expected"
+    assert_sorted_equal "2.a Find by name pattern current directory" "$actual" "$expected"
+}
+
+# --- Test 2.b: find by name pattern different directory ---
+test_name_glob_different_directory() {
+    "$FIND" data -name "*.txt" > "$actual"
+    find data -name "*.txt" > "$expected"
+    assert_sorted_equal "2.b Find by name pattern different directory" "$actual" "$expected"
 }
 
 # --- Test 3: find directories only ---
@@ -106,7 +120,9 @@ test_print0_and_xargs() {
 
 # Run all tests
 test_no_args
-#test_name_glob
+test_no_glob_pattern
+test_name_glob
+test_name_glob_different_directory
 #test_type_dir
 #test_mtime
 #test_exec

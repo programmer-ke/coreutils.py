@@ -1,5 +1,6 @@
 .PHONY: cat find
 
+all:	cat find
 cat:
 	bash tests/test_cat.sh
 
