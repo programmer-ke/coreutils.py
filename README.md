@@ -81,3 +81,12 @@ $ ./find data
 ```bash
 $ ./find data -name *.txt
 ```
+
+### 4) Matching directory or regular files
+
+```bash
+$ ./find data -name -type d
+...
+$ ./find data -name -type f
+...
+```

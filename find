@@ -2,6 +2,7 @@
 
 import argparse
 import pathlib
+import stat
 
 DEFAULT_DIRECTORY = "."
 DEFAULT_GLOB_PATTERN = "*"
@@ -18,6 +19,11 @@ parser.add_argument(
     help="name pattern to match",
     default=DEFAULT_GLOB_PATTERN,
 )
+parser.add_argument(
+    "-type",
+    choices=('d', 'f'),
+    help="the file type to match"
+)
 
 args = parser.parse_args()
 
@@ -26,7 +32,15 @@ glob_pattern = args.glob_pattern
 
 matches = pathlib.Path(directory).rglob(glob_pattern)
 
-if glob_pattern == DEFAULT_GLOB_PATTERN:
+is_file_match = args.type == "f"
+is_dir_match = args.type == "d"
+
+if is_file_match:
+    matches = (p for p in matches if stat.S_ISREG(p.lstat().st_mode))
+elif is_dir_match:
+    matches = (p for p in matches if stat.S_ISDIR(p.lstat().st_mode))
+
+if glob_pattern == DEFAULT_GLOB_PATTERN and not is_file_match:
     print(directory)  # print starting point
 
 if directory == DEFAULT_DIRECTORY:

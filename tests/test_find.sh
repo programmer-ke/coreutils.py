@@ -74,11 +74,18 @@ test_name_glob_different_directory() {
     assert_sorted_equal "2.b Find by name pattern different directory" "$actual" "$expected"
 }
 
-# --- Test 3: find directories only ---
+# --- Test 3.a: find directories only ---
 test_type_dir() {
     "$FIND" . -type d > "$actual"
     find . -type d > "$expected"
-    assert_sorted_equal "3. Find directories only" "$actual" "$expected"
+    assert_sorted_equal "3.a Find directories only" "$actual" "$expected"
+}
+
+# --- Test 3.b: find regular files only ---
+test_type_file() {
+    "$FIND" . -type f > "$actual"
+    find . -type f > "$expected"
+    assert_sorted_equal "3.b Find regular files only" "$actual" "$expected"
 }
 
 # --- Test 4: find by modification time ---
@@ -123,7 +130,8 @@ test_no_args
 test_no_glob_pattern
 test_name_glob
 test_name_glob_different_directory
-#test_type_dir
+test_type_dir
+test_type_file
 #test_mtime
 #test_exec
 #test_print0_and_xargs
