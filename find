@@ -3,11 +3,27 @@
 import argparse
 import pathlib
 import stat
+import re
+import time
+import itertools
+
 
 DEFAULT_DIRECTORY = "."
 DEFAULT_GLOB_PATTERN = "*"
 
 parser = argparse.ArgumentParser(prog="find", description="Find files")
+
+
+def mtime_format(string):
+    if not re.match(r"^[+-]?\d+$", string):
+        raise argparse.ArgumentError()
+    return string
+
+
+def time_delta(current_time, days):
+    day_seconds = 60 * 60 * 24
+    return current_time + (days * day_seconds)
+
 
 parser.add_argument(
     "directory", nargs="?", help="directory to search", default=DEFAULT_DIRECTORY
@@ -19,11 +35,8 @@ parser.add_argument(
     help="name pattern to match",
     default=DEFAULT_GLOB_PATTERN,
 )
-parser.add_argument(
-    "-type",
-    choices=('d', 'f'),
-    help="the file type to match"
-)
+parser.add_argument("-type", choices=("d", "f"), help="the file type to match")
+parser.add_argument("-mtime", type=mtime_format, help="24 hour modification period")
 
 args = parser.parse_args()
 
@@ -32,21 +45,45 @@ glob_pattern = args.glob_pattern
 
 matches = pathlib.Path(directory).rglob(glob_pattern)
 
-is_file_match = args.type == "f"
-is_dir_match = args.type == "d"
+if glob_pattern == DEFAULT_GLOB_PATTERN:
+    # include the root directory itself in paths to be output
+    p = pathlib.Path(directory)
+    matches = itertools.chain([p], matches)
 
-if is_file_match:
-    matches = (p for p in matches if stat.S_ISREG(p.lstat().st_mode))
-elif is_dir_match:
-    matches = (p for p in matches if stat.S_ISDIR(p.lstat().st_mode))
+current_time = time.time()
+match args.mtime:
+    case str() if args.mtime.startswith("+"):
+        days = int(args.mtime) + 1
+        threshold = time_delta(current_time, -days)
+        matches = (p for p in matches if p.stat().st_mtime < threshold)
+    case str() if args.mtime.startswith("-"):
+        days = int(args.mtime[1:])
+        threshold = time_delta(current_time, -days)
+        matches = (p for p in matches if p.stat().st_mtime > threshold)
+    case str():
+        days = int(args.mtime)
+        floor = time_delta(current_time, -days)
+        ceil = time_delta(current_time, -(days + 1))
+        matches = (p for p in matches if ceil < p.stat().st_mtime <= floor)
 
-if glob_pattern == DEFAULT_GLOB_PATTERN and not is_file_match:
-    print(directory)  # print starting point
+match args.type:
+    case "f":
+        matches = (p for p in matches if stat.S_ISREG(p.lstat().st_mode))
+    case "d":
+        matches = (p for p in matches if stat.S_ISDIR(p.lstat().st_mode))
 
-if directory == DEFAULT_DIRECTORY:
-    fmt_str = "./{path}"
-else:
-    fmt_str = "{path}"
 
-for p in matches:
-    print(fmt_str.format(path=p))  # default action is -print
+def get_formatted_string(directory, path):
+
+    match (directory, str(path)):
+        case (_, "."):
+            output_str = str(path)
+        case (".", p):
+            output_str = f"./{p}"
+        case _:
+            output_str = str(path)
+    return output_str
+
+
+for path in matches:
+    print(get_formatted_string(directory, path))

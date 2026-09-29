@@ -88,11 +88,26 @@ test_type_file() {
     assert_sorted_equal "3.b Find regular files only" "$actual" "$expected"
 }
 
-# --- Test 4: find by modification time ---
-test_mtime() {
-    "$FIND" . -mtime -365 > "$actual"
-    find . -mtime -365 > "$expected"
-    assert_sorted_equal "4. Find by modification time" "$actual" "$expected"
+# --- Test 4.a: find by modification time < 3 days ---
+test_mtime_lt_3() {
+    "$FIND" . -mtime -3 > "$actual"
+    find . -mtime -3 > "$expected"
+    assert_sorted_equal "4.a Find by modification time < 3 days" "$actual" "$expected"
+}
+
+
+# --- Test 4.b: find by modification time == 3 days ---
+test_mtime_eq_3() {
+    "$FIND" . -mtime 3 > "$actual"
+    find . -mtime 3 > "$expected"
+    assert_sorted_equal "4.b Find by modification time == 3 days" "$actual" "$expected"
+}
+
+# --- Test 4.c: find by modification time > 3 days ---
+test_mtime_gt_3() {
+    "$FIND" . -mtime +3 > "$actual"
+    find . -mtime +3 > "$expected"
+    assert_sorted_equal "4.c Find by modification time > 3 days" "$actual" "$expected"
 }
 
 # --- Test 5: exec a command (non‑destructive) ---
@@ -132,7 +147,9 @@ test_name_glob
 test_name_glob_different_directory
 test_type_dir
 test_type_file
-#test_mtime
+test_mtime_lt_3
+test_mtime_eq_3
+test_mtime_gt_3
 #test_exec
 #test_print0_and_xargs
 
