@@ -11,70 +11,50 @@ import itertools
 DEFAULT_DIRECTORY = "."
 DEFAULT_GLOB_PATTERN = "*"
 
-parser = argparse.ArgumentParser(prog="find", description="Find files")
-
 
 def mtime_format(string):
+    """Validate mtime format string"""
     if not re.match(r"^[+-]?\d+$", string):
         raise argparse.ArgumentError()
     return string
 
 
 def time_delta(current_time, days):
+    """Calculate time delta in seconds from current time"""
     day_seconds = 60 * 60 * 24
     return current_time + (days * day_seconds)
 
 
-parser.add_argument(
-    "directory", nargs="?", help="directory to search", default=DEFAULT_DIRECTORY
-)
-parser.add_argument(
-    "-name",
-    dest="glob_pattern",
-    action="store",
-    help="name pattern to match",
-    default=DEFAULT_GLOB_PATTERN,
-)
-parser.add_argument("-type", choices=("d", "f"), help="the file type to match")
-parser.add_argument("-mtime", type=mtime_format, help="24 hour modification period")
+def filter_paths(paths, modified_time, file_type):
+    """Apply filters to file paths"""
+    current_time = time.time()
 
-args = parser.parse_args()
+    match modified_time:
+        case str() if modified_time.startswith("+"):
+            days = int(modified_time) + 1
+            threshold = time_delta(current_time, -days)
+            paths = (p for p in paths if p.stat().st_mtime < threshold)
+        case str() if modified_time.startswith("-"):
+            days = int(modified_time[1:])
+            threshold = time_delta(current_time, -days)
+            paths = (p for p in paths if p.stat().st_mtime > threshold)
+        case str():
+            days = int(modified_time)
+            floor = time_delta(current_time, -days)
+            ceil = time_delta(current_time, -(days + 1))
+            paths = (p for p in paths if ceil < p.stat().st_mtime <= floor)
 
-directory = args.directory
-glob_pattern = args.glob_pattern
+    match file_type:
+        case "f":
+            paths = (p for p in paths if stat.S_ISREG(p.lstat().st_mode))
+        case "d":
+            paths = (p for p in paths if stat.S_ISDIR(p.lstat().st_mode))
 
-matches = pathlib.Path(directory).rglob(glob_pattern)
-
-if glob_pattern == DEFAULT_GLOB_PATTERN:
-    # include the root directory itself in paths to be output
-    p = pathlib.Path(directory)
-    matches = itertools.chain([p], matches)
-
-current_time = time.time()
-match args.mtime:
-    case str() if args.mtime.startswith("+"):
-        days = int(args.mtime) + 1
-        threshold = time_delta(current_time, -days)
-        matches = (p for p in matches if p.stat().st_mtime < threshold)
-    case str() if args.mtime.startswith("-"):
-        days = int(args.mtime[1:])
-        threshold = time_delta(current_time, -days)
-        matches = (p for p in matches if p.stat().st_mtime > threshold)
-    case str():
-        days = int(args.mtime)
-        floor = time_delta(current_time, -days)
-        ceil = time_delta(current_time, -(days + 1))
-        matches = (p for p in matches if ceil < p.stat().st_mtime <= floor)
-
-match args.type:
-    case "f":
-        matches = (p for p in matches if stat.S_ISREG(p.lstat().st_mode))
-    case "d":
-        matches = (p for p in matches if stat.S_ISDIR(p.lstat().st_mode))
+    return paths
 
 
 def get_formatted_string(directory, path):
-
+    """Get the expected output path format string"""
     match (directory, str(path)):
         case (_, "."):
             output_str = str(path)
@@ -85,5 +65,41 @@ def get_formatted_string(directory, path):
     return output_str
 
 
-for path in matches:
-    print(get_formatted_string(directory, path))
+def main(args):
+    """Show matching paths based on CLI options"""
+    directory = args.directory
+    glob_pattern = args.glob_pattern
+
+    matches = pathlib.Path(directory).rglob(glob_pattern)
+
+    if glob_pattern == DEFAULT_GLOB_PATTERN:
+        # Include the root directory itself in potential paths
+        # to be output
+        p = pathlib.Path(directory)
+        matches = itertools.chain([p], matches)
+
+    matches = filter_paths(matches, modified_time=args.mtime, file_type=args.type)
+
+    outputs = (get_formatted_string(directory, p) for p in matches)
+
+    for o in outputs:
+        print(o)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(prog="find", description="Find files")
+    parser.add_argument(
+        "directory", nargs="?", help="directory to search", default=DEFAULT_DIRECTORY
+    )
+    parser.add_argument(
+        "-name",
+        dest="glob_pattern",
+        action="store",
+        help="name pattern to match",
+        default=DEFAULT_GLOB_PATTERN,
+    )
+    parser.add_argument("-type", choices=("d", "f"), help="the file type to match")
+    parser.add_argument("-mtime", type=mtime_format, help="24 hour modification period")
+    args = parser.parse_args()
+    main(args)
