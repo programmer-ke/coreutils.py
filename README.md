@@ -101,3 +101,14 @@ $ ./find data -name -type f
 ./find . -mtime 1
 ...
 ```
+### 6) Executing commands on each output path
+
+```bash
+./find data -exec wc -l {} \;
+```
+
+### 7) Using null as separator in the output paths
+
+```bash
+./find data -print0
+```
