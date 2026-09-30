@@ -73,11 +73,15 @@ def get_formatted_string(directory, path):
     return output_str
 
 
-def output_action(path, exec_args=None):
+def output_action(path, exec_args=None, use_null_separator=False):
     """Execute output action on path"""
 
     if exec_args is None:
-        print(path)
+        if use_null_separator:
+            sep = "\x00"
+        else:
+            sep = "\n"
+        print(path, end=sep)
     else:
         # execute subprocess
         command = list(exec_args)
@@ -107,7 +111,7 @@ def main(args):
     outputs = (get_formatted_string(directory, p) for p in matches)
 
     for o in outputs:
-        output_action(o, args.exec)
+        output_action(o, args.exec, args.print0)
 
 
 if __name__ == "__main__":
@@ -127,6 +131,11 @@ if __name__ == "__main__":
     parser.add_argument("-mtime", type=mtime_format, help="24 hour modification period")
     parser.add_argument(
         "-exec", nargs=argparse.REMAINDER, help="command to execute on matching paths"
+    )
+    parser.add_argument(
+        "-print0",
+        action="store_true",
+        help="use null character as path separators in the output",
     )
     args = parser.parse_args()
     validate_exec_args(args.exec, parser)

@@ -151,7 +151,7 @@ test_mtime_lt_3
 test_mtime_eq_3
 test_mtime_gt_3
 test_exec
-#test_print0_and_xargs
+test_print0_and_xargs
 
 echo "----------------------------------------"
 echo "Results: $pass_count passed, $fail_count failed"
