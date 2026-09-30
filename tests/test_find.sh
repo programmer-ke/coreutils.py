@@ -112,8 +112,8 @@ test_mtime_gt_3() {
 
 # --- Test 5: exec a command (non‑destructive) ---
 test_exec() {
-    "$FIND" . -name "*.txt" -exec echo {} \; > "$actual"
-    find . -name "*.txt" -exec echo {} \; > "$expected"
+    "$FIND" . -name "*.txt" -exec wc -l {} \; > "$actual"
+    find . -name "*.txt" -exec wc -l {} \; > "$expected"
     assert_sorted_equal "5. Exec command" "$actual" "$expected"
 }
 
@@ -150,7 +150,7 @@ test_type_file
 test_mtime_lt_3
 test_mtime_eq_3
 test_mtime_gt_3
-#test_exec
+test_exec
 #test_print0_and_xargs
 
 echo "----------------------------------------"

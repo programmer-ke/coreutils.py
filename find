@@ -6,7 +6,7 @@ import stat
 import re
 import time
 import itertools
-
+import subprocess
 
 DEFAULT_DIRECTORY = "."
 DEFAULT_GLOB_PATTERN = "*"
@@ -17,6 +17,14 @@ def mtime_format(string):
     if not re.match(r"^[+-]?\d+$", string):
         raise argparse.ArgumentError()
     return string
+
+
+def validate_exec_args(args, parser):
+    if args is None:
+        return
+    if len(args) < 2 or args[-1] != ";":
+        parser.error("missing argument to `-exec'")
+    args.pop()  # pop off ;
 
 
 def time_delta(current_time, days):
@@ -65,6 +73,22 @@ def get_formatted_string(directory, path):
     return output_str
 
 
+def output_action(path, exec_args=None):
+    """Execute output action on path"""
+
+    if exec_args is None:
+        print(path)
+    else:
+        # execute subprocess
+        command = list(exec_args)
+        try:
+            command[command.index("{}")] = path
+        except ValueError:
+            # no path placeholder
+            pass
+        subprocess.run(command)
+
+
 def main(args):
     """Show matching paths based on CLI options"""
     directory = args.directory
@@ -83,12 +107,12 @@ def main(args):
     outputs = (get_formatted_string(directory, p) for p in matches)
 
     for o in outputs:
-        print(o)
+        output_action(o, args.exec)
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(prog="find", description="Find files")
+    parser = argparse.ArgumentParser(prog="find", description="Find matching files")
     parser.add_argument(
         "directory", nargs="?", help="directory to search", default=DEFAULT_DIRECTORY
     )
@@ -101,5 +125,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("-type", choices=("d", "f"), help="the file type to match")
     parser.add_argument("-mtime", type=mtime_format, help="24 hour modification period")
+    parser.add_argument(
+        "-exec", nargs=argparse.REMAINDER, help="command to execute on matching paths"
+    )
     args = parser.parse_args()
+    validate_exec_args(args.exec, parser)
     main(args)
