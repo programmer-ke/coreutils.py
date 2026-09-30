@@ -2,6 +2,9 @@
 
 A re-implementation of common coreutils in python
 
+<details>
+<summary>cat</summary>
+
 ## cat
 
 Behaviour supported:
@@ -60,6 +63,11 @@ $ ./cat <<EOF > somefile.txt
 $ printf "sometext\n" | ./cat - somefile.txt
 ```
 
+</details>
+
+<details>
+<summary>Find</summary>
+
 ## Find
 
 Supported:
@@ -112,3 +120,5 @@ $ ./find data -name -type f
 ```bash
 ./find data -print0
 ```
+
+</details>
