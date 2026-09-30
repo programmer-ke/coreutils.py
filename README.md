@@ -82,11 +82,22 @@ $ ./find data
 $ ./find data -name *.txt
 ```
 
-### 4) Matching directory or regular files
+### 4) Matching directories or regular files
 
 ```bash
 $ ./find data -name -type d
 ...
 $ ./find data -name -type f
+...
+```
+
+### 5) Matching by modified time
+
+```bash
+./find . -mtime +1
+...
+./find . -mtime -1
+...
+./find . -mtime 1
 ...
 ```
