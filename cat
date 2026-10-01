@@ -2,23 +2,10 @@
 import argparse
 import sys
 
-parser = argparse.ArgumentParser(
-    prog="cat",
-    description="Concatenate files",
-)
-
-parser.add_argument("filenames", nargs="*")
-parser.add_argument(
-    "-n", "--number", action="store_true", dest="show_lineno", help="print line numbers"
-)
-args = parser.parse_args()
-
-files = args.filenames or [sys.stdin]
 lineno = 0
-show_lineno = args.show_lineno
 
 
-def print_file(f):
+def print_file(f, show_lineno):
     for line in f:
         if show_lineno:
             global lineno
@@ -27,14 +14,37 @@ def print_file(f):
         sys.stdout.write(line)
 
 
-for file in files:
-    if hasattr(file, "read"):
-        # file-like object
-        print_file(file)
-    elif file == "-":
-        # stdin in args
-        print_file(sys.stdin)
-    else:
-        # filename provided
-        with open(file) as f:
-            print_file(f)
+def main(args):
+    files = args.filenames or [sys.stdin]
+
+    show_lineno = args.show_lineno
+
+    for file in files:
+        if hasattr(file, "read"):
+            # file-like object
+            print_file(file, show_lineno)
+        elif file == "-":
+            # stdin in args
+            print_file(sys.stdin, show_lineno)
+        else:
+            # filename provided
+            with open(file) as f:
+                print_file(f, show_lineno)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog="cat",
+        description="Concatenate files",
+    )
+
+    parser.add_argument("filenames", nargs="*")
+    parser.add_argument(
+        "-n",
+        "--number",
+        action="store_true",
+        dest="show_lineno",
+        help="print line numbers",
+    )
+    args = parser.parse_args()
+    main(args)
