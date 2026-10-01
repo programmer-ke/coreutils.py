@@ -2,6 +2,9 @@
 
 A re-implementation of common coreutils in python
 
+<details>
+<summary>cat</summary>
+
 ## cat
 
 Behaviour supported:
@@ -59,3 +62,63 @@ $ ./cat <<EOF > somefile.txt
 ```bash
 $ printf "sometext\n" | ./cat - somefile.txt
 ```
+
+</details>
+
+<details>
+<summary>Find</summary>
+
+## Find
+
+Supported:
+
+### 1) No arguments lists everything in current directory
+
+```bash
+$ ./find
+```
+
+### 2) No glob pattern lists everything in target directory
+
+```bash
+$ ./find data
+```
+
+### 3) Directory and glob pattern matches filtered files
+
+```bash
+$ ./find data -name "*.txt"
+```
+
+### 4) Matching directories or regular files
+
+```bash
+$ ./find data -type d
+...
+$ ./find data -type f
+...
+```
+
+### 5) Matching by modified time
+
+```bash
+./find . -mtime +1
+...
+./find . -mtime -1
+...
+./find . -mtime 1
+...
+```
+### 6) Executing commands on each output path
+
+```bash
+./find data -exec wc -l {} \;
+```
+
+### 7) Using null as separator in the output paths
+
+```bash
+./find data -print0
+```
+
+</details>

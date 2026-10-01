@@ -1,0 +1,145 @@
+#!/usr/bin/env python
+
+import argparse
+import pathlib
+import stat
+import re
+import time
+import itertools
+import subprocess
+
+DEFAULT_DIRECTORY = "."
+DEFAULT_GLOB_PATTERN = "*"
+
+
+def mtime_format(string):
+    """Validate mtime format string"""
+    if not re.match(r"^[+-]?\d+$", string):
+        raise argparse.ArgumentError()
+    return string
+
+
+def validate_exec_args(args, parser):
+    if args is None:
+        return
+    if len(args) < 2 or args[-1] != ";":
+        parser.error("missing argument to `-exec'")
+
+
+def days_from(current_time, days):
+    """Calculate time days from current time"""
+    day_seconds = 60 * 60 * 24
+    return current_time + (days * day_seconds)
+
+
+def filter_paths(paths, modified_time, file_type):
+    """Apply filters to file paths"""
+    current_time = time.time()
+
+    for p in paths:
+        p_stat = p.lstat()
+        if should_include(
+            p_stat.st_mtime, p_stat.st_mode, modified_time, file_type, current_time
+        ):
+            yield p
+
+
+def should_include(st_mtime, st_mode, mtime_filter, type_filter, current_time):
+    """Indicate whether path should be included based on filters"""
+
+    if mtime_filter is not None:
+        if mtime_filter.startswith("+"):
+            days = int(mtime_filter) + 1
+            threshold = days_from(current_time, -days)
+            if not (st_mtime < threshold):
+                return False
+        elif mtime_filter.startswith("-"):
+            days = int(mtime_filter[1:])
+            threshold = days_from(current_time, -days)
+            if not (st_mtime > threshold):
+                return False
+        else:
+            days = int(mtime_filter)
+            floor = days_from(current_time, -days)
+            ceil = days_from(current_time, -(days + 1))
+            if not (ceil < st_mtime <= floor):
+                return False
+
+    if type_filter == "f" and not stat.S_ISREG(st_mode):
+        return False
+    if type_filter == "d" and not stat.S_ISDIR(st_mode):
+        return False
+
+    return True
+
+
+def get_formatted_string(directory, path):
+    """Get the expected output path format string"""
+    match (directory, str(path)):
+        case (_, "."):
+            output_str = str(path)
+        case (".", p):
+            output_str = f"./{p}"
+        case _:
+            output_str = str(path)
+    return output_str
+
+
+def output_action(path, exec_args=None, use_null_separator=False):
+    """Execute output action on path"""
+
+    if exec_args is None:
+        print(path, end="\x00" if use_null_separator else "\n")
+    else:
+        # execute subprocess
+        command = [arg.replace("{}", path) for arg in exec_args[:-1]]
+        subprocess.run(command)
+
+
+def main(args):
+    """Show matching paths based on CLI options"""
+    directory = args.directory
+    glob_pattern = args.glob_pattern
+
+    matches = pathlib.Path(directory).rglob(glob_pattern)
+
+    if glob_pattern == DEFAULT_GLOB_PATTERN:
+        # Include the root directory itself in potential paths
+        # to be output
+        p = pathlib.Path(directory)
+        matches = itertools.chain([p], matches)
+
+    matches = filter_paths(matches, modified_time=args.mtime, file_type=args.type)
+
+    outputs = (get_formatted_string(directory, p) for p in matches)
+
+    for o in outputs:
+        output_action(o, args.exec, args.print0)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(prog="find", description="Find matching files")
+    parser.add_argument(
+        "directory", nargs="?", help="directory to search", default=DEFAULT_DIRECTORY
+    )
+    parser.add_argument(
+        "-name",
+        dest="glob_pattern",
+        action="store",
+        help="name pattern to match",
+        default=DEFAULT_GLOB_PATTERN,
+    )
+    parser.add_argument("-type", choices=("d", "f"), help="the file type to match")
+    parser.add_argument("-mtime", type=mtime_format, help="24 hour modification period")
+    parser.add_argument(
+        "-exec", nargs=argparse.REMAINDER, help="command to execute on matching paths"
+    )
+    parser.add_argument(
+        "-print0",
+        action="store_true",
+        help="use null character as path separators in the output",
+    )
+    args = parser.parse_args()
+    validate_exec_args(args.exec, parser)
+    main(args)

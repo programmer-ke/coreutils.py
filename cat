@@ -28,7 +28,7 @@ def print_file(f):
 
 
 for file in files:
-    if hasattr(file, 'read'):
+    if hasattr(file, "read"):
         # file-like object
         print_file(file)
     elif file == "-":
