@@ -66,9 +66,9 @@ $ printf "sometext\n" | ./cat - somefile.txt
 </details>
 
 <details>
-<summary>Find</summary>
+<summary>find</summary>
 
-## Find
+## find
 
 Supported:
 
@@ -119,6 +119,31 @@ $ ./find data -type f
 
 ```bash
 ./find data -print0
+```
+
+</details>
+
+<details>
+<summary>grep</summary>
+
+## Find
+
+### 1) Can search from stdin
+
+```bash
+cat data/file1.txt | ./grep two
+```
+
+### 2) Can search from file argument list
+
+```bash
+./grep two data/file1.txt data/file2.txt
+```
+
+### 3) Can do a case-insensitive search
+
+```bash
+./grep -i hello data/file1.txt data/file2.txt
 ```
 
 </details>
