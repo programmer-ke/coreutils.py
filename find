@@ -37,28 +37,41 @@ def filter_paths(paths, modified_time, file_type):
     """Apply filters to file paths"""
     current_time = time.time()
 
-    match modified_time:
-        case str() if modified_time.startswith("+"):
-            days = int(modified_time) + 1
+    for p in paths:
+        p_stat = p.lstat()
+        if should_include(
+            p_stat.st_mtime, p_stat.st_mode, modified_time, file_type, current_time
+        ):
+            yield p
+
+
+def should_include(st_mtime, st_mode, mtime_filter, type_filter, current_time):
+    """Indicate whether path should be included based on filters"""
+
+    if mtime_filter is not None:
+        if mtime_filter.startswith("+"):
+            days = int(mtime_filter) + 1
             threshold = time_delta(current_time, -days)
-            paths = (p for p in paths if p.stat().st_mtime < threshold)
-        case str() if modified_time.startswith("-"):
-            days = int(modified_time[1:])
+            if not (st_mtime < threshold):
+                return False
+        elif mtime_filter.startswith("-"):
+            days = int(mtime_filter[1:])
             threshold = time_delta(current_time, -days)
-            paths = (p for p in paths if p.stat().st_mtime > threshold)
-        case str():
-            days = int(modified_time)
+            if not (st_mtime > threshold):
+                return False
+        else:
+            days = int(mtime_filter)
             floor = time_delta(current_time, -days)
             ceil = time_delta(current_time, -(days + 1))
-            paths = (p for p in paths if ceil < p.stat().st_mtime <= floor)
+            if not (ceil < st_mtime <= floor):
+                return False
 
-    match file_type:
-        case "f":
-            paths = (p for p in paths if stat.S_ISREG(p.lstat().st_mode))
-        case "d":
-            paths = (p for p in paths if stat.S_ISDIR(p.lstat().st_mode))
+    if type_filter == "f" and not stat.S_ISREG(st_mode):
+        return False
+    if type_filter == "d" and not stat.S_ISDIR(st_mode):
+        return False
 
-    return paths
+    return True
 
 
 def get_formatted_string(directory, path):
