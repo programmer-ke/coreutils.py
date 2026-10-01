@@ -70,7 +70,7 @@ $ printf "sometext\n" | ./cat - somefile.txt
 
 ## find
 
-Supported:
+Behaviour supported:
 
 ### 1) No arguments lists everything in current directory
 
@@ -126,24 +126,32 @@ $ ./find data -type f
 <details>
 <summary>grep</summary>
 
-## Find
+## grep
 
-### 1) Can search from stdin
+Behaviour supported:
+
+### 1) Searching from stdin
 
 ```bash
 cat data/file1.txt | ./grep two
 ```
 
-### 2) Can search from file argument list
+### 2) Searching from file argument list
 
 ```bash
 ./grep two data/file1.txt data/file2.txt
 ```
 
-### 3) Can do a case-insensitive search
+### 3) Doing a case-insensitive search
 
 ```bash
 ./grep -i hello data/file1.txt data/file2.txt
+```
+
+### 3) Doing a recursive search into directories
+
+```bash
+./grep -r hello data
 ```
 
 </details>

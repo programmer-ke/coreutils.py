@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-
+import pathlib
 import sys
 import re
 import argparse
+import itertools
 
 
 def filter_lines(lines, pattern, insensitive_match):
@@ -27,15 +28,46 @@ def output_action(line):
     print(line, end="")
 
 
+def check_multiple_items(files):
+    iterator, sentinel = iter(files), None
+    first = next(iterator, sentinel)
+    if first is not sentinel:
+        second = next(iterator, sentinel)
+        if second is not sentinel:
+            iterator = itertools.chain([first, second], iterator)
+            result = True
+        else:
+            iterator = itertools.chain([first], iterator)
+            result = False
+    else:
+        result = False
+    return result, iterator
+
+
 def main(args):
-    files = args.files or [sys.stdin]
+    if not args.files:
+        files = [pathlib.Path.cwd()] if args.recursive_search else [sys.stdin]
+    else:
+        files = args.files
+
+    if args.recursive_search:
+        # recursively search any directories
+        dirs = [p for p in files if p is not sys.stdin and p.is_dir()]
+        glob_iterator = itertools.chain.from_iterable([p.rglob("*") for p in dirs])
+        files = itertools.chain(files, glob_iterator)
+
+    # check if we have more than one file
+    has_multiple, files = check_multiple_items(files)
+
     for file in files:
         if file is sys.stdin:
             for l in process(args.pattern, file, args.insensitive_match, filename=None):
                 output_action(l)
         else:
+            if args.recursive_search and file.is_dir():
+                continue
             with open(file, "rt") as f:
-                show_filenames = len(files) > 1
+                show_filenames = has_multiple
                 filename = file if show_filenames else None
                 for l in process(
                     args.pattern, f, args.insensitive_match, filename=filename
@@ -51,7 +83,13 @@ if __name__ == "__main__":
         dest="insensitive_match",
         help="case insensitive search",
     )
+    parser.add_argument(
+        "-r",
+        action="store_true",
+        dest="recursive_search",
+        help="recursively search directories",
+    )
     parser.add_argument("pattern", help="pattern to find")
-    parser.add_argument("files", nargs="*", help="files to search")
+    parser.add_argument("files", nargs="*", help="files to search", type=pathlib.Path)
     args = parser.parse_args()
     main(args)
