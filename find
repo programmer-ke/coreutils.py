@@ -92,7 +92,7 @@ def output_action(path, exec_args=None, use_null_separator=False):
         print(path, end="\x00" if use_null_separator else "\n")
     else:
         # execute subprocess
-        command = [path if arg == "{}" else arg for arg in exec_args[:-1]]
+        command = [arg.replace("{}", path) for arg in exec_args[:-1]]
         subprocess.run(command)
 
 
