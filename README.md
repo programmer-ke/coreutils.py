@@ -160,4 +160,10 @@ cat data/file1.txt | ./grep two
 ./grep -n hello data/*
 ```
 
+### 5) Inverting the search
+
+```bash
+./grep -v hello data/*
+```
+
 </details>
