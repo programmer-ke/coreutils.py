@@ -148,10 +148,16 @@ cat data/file1.txt | ./grep two
 ./grep -i hello data/file1.txt data/file2.txt
 ```
 
-### 3) Doing a recursive search into directories
+### 4) Doing a recursive search into directories
 
 ```bash
 ./grep -r hello data
+```
+
+### 5) Showing line number
+
+```bash
+./grep -n hello data/*
 ```
 
 </details>
