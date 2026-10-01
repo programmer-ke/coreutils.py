@@ -97,12 +97,7 @@ def output_action(path, exec_args=None, use_null_separator=False):
         print(path, end=sep)
     else:
         # execute subprocess
-        command = list(exec_args)
-        try:
-            command[command.index("{}")] = path
-        except ValueError:
-            # no path placeholder
-            pass
+        command = [path if arg == "{}" else arg for arg in exec_args]
         subprocess.run(command)
 
 
