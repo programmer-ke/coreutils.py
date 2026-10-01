@@ -87,15 +87,15 @@ $ ./find data
 ### 3) Directory and glob pattern matches filtered files
 
 ```bash
-$ ./find data -name *.txt
+$ ./find data -name "*.txt"
 ```
 
 ### 4) Matching directories or regular files
 
 ```bash
-$ ./find data -name -type d
+$ ./find data -type d
 ...
-$ ./find data -name -type f
+$ ./find data -type f
 ...
 ```
 

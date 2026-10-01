@@ -155,3 +155,6 @@ test_print0_and_xargs
 
 echo "----------------------------------------"
 echo "Results: $pass_count passed, $fail_count failed"
+if ((fail_count > 0)); then
+    exit 1
+fi
