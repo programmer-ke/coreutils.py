@@ -23,7 +23,7 @@ def format_output(lines, filename=None, show_lineno=False, show_match_count=Fals
             yield fmt.format(line=l, lineno=i + 1)
     else:
         # show count instead
-        count = len(list(lines))
+        count = sum(1 for _ in lines)
         fmt = fmt + "\n"
         yield fmt.format(line=count)
 
