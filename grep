@@ -7,6 +7,7 @@ import itertools
 
 
 def filter_lines(lines, pattern, invert_match):
+    """Filter lines that match the pattern"""
     for i, l in enumerate(lines):
         pattern_found = pattern.search(l)
         match_found = pattern_found if not invert_match else not pattern_found
@@ -15,6 +16,7 @@ def filter_lines(lines, pattern, invert_match):
 
 
 def format_output(lines, filename=None, show_lineno=False, show_match_count=False):
+    """Format output as determined by output arguments """
     fmt = "{lineno}:{line}" if show_lineno else "{line}"
     fmt = f"{filename}:" + fmt if filename else fmt
     if not show_match_count:
@@ -29,6 +31,7 @@ def format_output(lines, filename=None, show_lineno=False, show_match_count=Fals
 
 
 def process(pattern, args, file, filename=None):
+    """Determine the expected output given the inputs"""
     matching_lines = filter_lines((l for l in file), pattern, args.invert_match)
     yield from format_output(
         matching_lines, filename, args.show_lineno, args.show_match_count
@@ -36,10 +39,12 @@ def process(pattern, args, file, filename=None):
 
 
 def output_action(line):
+    """Output the result of matching """
     print(line, end="")
 
 
 def check_multiple_items(files):
+    """Check if iterable has more that one item"""
     iterator, sentinel = iter(files), None
     first = next(iterator, sentinel)
     if first is not sentinel:
@@ -56,6 +61,7 @@ def check_multiple_items(files):
 
 
 def main(args):
+    """Execute the command"""
     if not args.files and args.recursive_search:
         files = [pathlib.Path.cwd()]
     else:
