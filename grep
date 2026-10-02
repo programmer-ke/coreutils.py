@@ -16,7 +16,7 @@ def filter_lines(lines, pattern, invert_match):
 
 
 def format_output(lines, filename=None, show_lineno=False, show_match_count=False):
-    """Format output as determined by output arguments """
+    """Format output as determined by output arguments"""
     fmt = "{lineno}:{line}" if show_lineno else "{line}"
     fmt = "{filename}:" + fmt if filename else fmt
     if not show_match_count:
@@ -42,7 +42,7 @@ def process(pattern, args, file, filename=None):
 
 
 def output_action(line):
-    """Output the result of matching """
+    """Output the result of matching"""
     print(line, end="")
 
 
@@ -88,11 +88,16 @@ def main(args):
         file_encountered = True
         if args.recursive_search and file.is_dir():
             continue
-        with open(file, "rt") as f:
-            show_filenames = has_multiple
-            filename = file if show_filenames else None
-            for l in process(pattern_to_match, args, f, filename=filename):
-                output_action(l)
+        try:
+            with open(file, "rt", encoding="utf8") as f:
+                show_filenames = has_multiple
+                filename = file if show_filenames else None
+                for l in process(pattern_to_match, args, f, filename=filename):
+                    output_action(l)
+        except ValueError as exc:
+            print(f"could not open file: {file}", file=sys.stderr)
+            print(exc, file=sys.stderr)
+
     else:
         if file_encountered is False:
             # process stdin instead
