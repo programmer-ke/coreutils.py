@@ -22,6 +22,9 @@ def format_output(lines, filename=None, show_lineno=False, show_match_count=Fals
     if not show_match_count:
         # default, show actual lines
         for i, l in lines:
+            if not l.endswith("\n"):
+                # add a newline when line doesn't have one
+                fmt = fmt + "\n"
             yield fmt.format(filename=filename, line=l, lineno=i + 1)
     else:
         # show count instead
