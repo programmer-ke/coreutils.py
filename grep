@@ -59,32 +59,35 @@ def check_multiple_items(files):
 
 
 def main(args):
-    if not args.files:
-        files = [pathlib.Path.cwd()] if args.recursive_search else [sys.stdin]
+    if not args.files and args.recursive_search:
+        files = [pathlib.Path.cwd()]
     else:
         files = args.files
 
     if args.recursive_search:
         # recursively search any directories
-        dirs = [p for p in files if p is not sys.stdin and p.is_dir()]
+        dirs = [p for p in files if p.is_dir()]
         glob_iterator = itertools.chain.from_iterable([p.rglob("*") for p in dirs])
         files = itertools.chain(files, glob_iterator)
 
     # check if we have more than one file
     has_multiple, files = check_multiple_items(files)
 
+    file_encountered = False
     for file in files:
-        if file is sys.stdin:
-            for l in process(args, file):
+        file_encountered = True
+        if args.recursive_search and file.is_dir():
+            continue
+        with open(file, "rt") as f:
+            show_filenames = has_multiple
+            filename = file if show_filenames else None
+            for l in process(args, f, filename=filename):
                 output_action(l)
-        else:
-            if args.recursive_search and file.is_dir():
-                continue
-            with open(file, "rt") as f:
-                show_filenames = has_multiple
-                filename = file if show_filenames else None
-                for l in process(args, f, filename=filename):
-                    output_action(l)
+    else:
+        if file_encountered is False:
+            # process stdin instead
+            for l in process(args, sys.stdin):
+                output_action(l)
 
 
 if __name__ == "__main__":
