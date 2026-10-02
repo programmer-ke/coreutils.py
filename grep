@@ -29,9 +29,7 @@ def format_output(lines, filename=None, show_lineno=False, show_match_count=Fals
 
 
 def process(pattern, args, file, filename=None):
-    matching_lines = filter_lines(
-        (l for l in file), pattern, args.invert_match
-    )
+    matching_lines = filter_lines((l for l in file), pattern, args.invert_match)
     yield from format_output(
         matching_lines, filename, args.show_lineno, args.show_match_count
     )
@@ -108,24 +106,27 @@ if __name__ == "__main__":
         help="recursively search directories",
     )
     parser.add_argument(
-        "-n",
-        action="store_true",
-        dest="show_lineno",
-        help="show matching line number",
-    )
-    parser.add_argument(
         "-v",
         action="store_true",
         dest="invert_match",
         help="show lines that do not match pattern",
     )
-    parser.add_argument(
+    parser.add_argument("pattern", help="pattern to find")
+    parser.add_argument("files", nargs="*", help="files to search", type=pathlib.Path)
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "-n",
+        action="store_true",
+        dest="show_lineno",
+        help="show matching line number",
+    )
+    group.add_argument(
         "-c",
         action="store_true",
         dest="show_match_count",
         help="show number of matching lines per file",
     )
-    parser.add_argument("pattern", help="pattern to find")
-    parser.add_argument("files", nargs="*", help="files to search", type=pathlib.Path)
+
     args = parser.parse_args()
     main(args)
