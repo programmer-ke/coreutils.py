@@ -1,0 +1,146 @@
+#!/usr/bin/env python
+import pathlib
+import sys
+import re
+import argparse
+import itertools
+
+
+def filter_lines(lines, pattern, invert_match):
+    """Filter lines that match the pattern"""
+    for i, l in enumerate(lines):
+        pattern_found = pattern.search(l)
+        match_found = pattern_found if not invert_match else not pattern_found
+        if match_found:
+            yield i, l
+
+
+def format_output(lines, filename=None, show_lineno=False, show_match_count=False):
+    """Format output as determined by output arguments"""
+    fmt = "{lineno}:{line}" if show_lineno else "{line}"
+    fmt = "{filename}:" + fmt if filename else fmt
+    if not show_match_count:
+        # default, show actual lines
+        for i, l in lines:
+            if not l.endswith("\n"):
+                # add a newline when line doesn't have one
+                fmt = fmt + "\n"
+            yield fmt.format(filename=filename, line=l, lineno=i + 1)
+    else:
+        # show count instead
+        count = sum(1 for _ in lines)
+        fmt = fmt + "\n"
+        yield fmt.format(filename=filename, line=count)
+
+
+def process(pattern, args, file, filename=None):
+    """Determine the expected output given the inputs"""
+    matching_lines = filter_lines((l for l in file), pattern, args.invert_match)
+    yield from format_output(
+        matching_lines, filename, args.show_lineno, args.show_match_count
+    )
+
+
+def output_action(line):
+    """Output the result of matching"""
+    print(line, end="")
+
+
+def check_multiple_items(files):
+    """Check if iterable has more that one item"""
+    iterator, sentinel = iter(files), None
+    first = next(iterator, sentinel)
+    if first is not sentinel:
+        second = next(iterator, sentinel)
+        if second is not sentinel:
+            iterator = itertools.chain([first, second], iterator)
+            result = True
+        else:
+            iterator = itertools.chain([first], iterator)
+            result = False
+    else:
+        result = False
+    return result, iterator
+
+
+def main(args):
+    """Execute the command"""
+    if not args.files and args.recursive_search:
+        files = [pathlib.Path.cwd()]
+    else:
+        files = args.files
+
+    if args.recursive_search:
+        # recursively search any directories
+        dirs = [p for p in files if p.is_dir()]
+        glob_iterator = itertools.chain.from_iterable([p.rglob("*") for p in dirs])
+        files = itertools.chain(files, glob_iterator)
+
+    # check if we have more than one file
+    has_multiple, files = check_multiple_items(files)
+
+    # Compile pattern
+    re_flags = re.IGNORECASE if args.insensitive_match else 0
+    pattern_to_match = re.compile(args.pattern, re_flags)
+
+    file_encountered = False
+    for file in files:
+        file_encountered = True
+        if args.recursive_search and file.is_dir():
+            continue
+        try:
+            with open(file, "rt", encoding="utf8") as f:
+                show_filenames = has_multiple
+                filename = file if show_filenames else None
+                for l in process(pattern_to_match, args, f, filename=filename):
+                    output_action(l)
+        except ValueError as exc:
+            print(f"could not open file: {file}", file=sys.stderr)
+            print(exc, file=sys.stderr)
+
+    else:
+        if file_encountered is False:
+            # process stdin instead
+            for l in process(pattern_to_match, args, sys.stdin):
+                output_action(l)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(prog="grep", description="find matching lines")
+    parser.add_argument(
+        "-i",
+        action="store_true",
+        dest="insensitive_match",
+        help="case insensitive search",
+    )
+    parser.add_argument(
+        "-r",
+        action="store_true",
+        dest="recursive_search",
+        help="recursively search directories",
+    )
+    parser.add_argument(
+        "-v",
+        action="store_true",
+        dest="invert_match",
+        help="show lines that do not match pattern",
+    )
+    parser.add_argument("pattern", help="pattern to find")
+    parser.add_argument("files", nargs="*", help="files to search", type=pathlib.Path)
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "-n",
+        action="store_true",
+        dest="show_lineno",
+        help="show matching line number",
+    )
+    group.add_argument(
+        "-c",
+        action="store_true",
+        dest="show_match_count",
+        help="show number of matching lines per file",
+    )
+
+    args = parser.parse_args()
+    main(args)
