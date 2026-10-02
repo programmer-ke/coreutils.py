@@ -166,4 +166,10 @@ cat data/file1.txt | ./grep two
 ./grep -v hello data/*
 ```
 
+### 6) Showing a count of matching lines per file
+
+```bash
+./grep -c two data/*
+```
+
 </details>

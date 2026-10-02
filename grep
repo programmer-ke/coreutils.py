@@ -7,26 +7,35 @@ import itertools
 
 
 def filter_lines(lines, pattern, insensitive_match, invert_match):
+    re_flags = re.IGNORECASE if insensitive_match else 0
     for i, l in enumerate(lines):
-        re_flags = re.IGNORECASE if insensitive_match else 0
         pattern_found = re.search(pattern, l, re_flags)
         match_found = pattern_found if not invert_match else not pattern_found
         if match_found:
             yield i, l
 
 
-def format_output(lines, filename=None, show_lineno=False):
+def format_output(lines, filename=None, show_lineno=False, show_match_count=False):
     fmt = "{lineno}:{line}" if show_lineno else "{line}"
     fmt = f"{filename}:" + fmt if filename else fmt
-    for i, l in lines:
-        yield fmt.format(line=l, lineno=i + 1)
+    if not show_match_count:
+        # default, show actual lines
+        for i, l in lines:
+            yield fmt.format(line=l, lineno=i + 1)
+    else:
+        # show count instead
+        count = len(list(lines))
+        fmt = fmt + "\n"
+        yield fmt.format(line=count)
 
 
 def process(args, file, filename=None):
     matching_lines = filter_lines(
         (l for l in file), args.pattern, args.insensitive_match, args.invert_match
     )
-    yield from format_output(matching_lines, filename, args.show_lineno)
+    yield from format_output(
+        matching_lines, filename, args.show_lineno, args.show_match_count
+    )
 
 
 def output_action(line):
@@ -103,6 +112,12 @@ if __name__ == "__main__":
         action="store_true",
         dest="invert_match",
         help="show lines that do not match pattern",
+    )
+    parser.add_argument(
+        "-c",
+        action="store_true",
+        dest="show_match_count",
+        help="show number of matching lines per file",
     )
     parser.add_argument("pattern", help="pattern to find")
     parser.add_argument("files", nargs="*", help="files to search", type=pathlib.Path)
