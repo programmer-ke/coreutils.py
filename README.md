@@ -160,13 +160,13 @@ cat data/file1.txt | ./grep two
 ./grep -n hello data/*
 ```
 
-### 5) Inverting the search
+### 6) Inverting the search
 
 ```bash
 ./grep -v hello data/*
 ```
 
-### 6) Showing a count of matching lines per file
+### 7) Showing a count of matching lines per file
 
 ```bash
 ./grep -c two data/*
