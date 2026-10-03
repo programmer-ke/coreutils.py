@@ -15,21 +15,15 @@ def allowed_index(str_num):
 
 def allowed_selector(str_selector):
     if "-" in str_selector:
-        start, end = 0, None
-        if str_selector.endswith("-"):
-            start = allowed_index(str_selector[:-1])
-        elif str_selector.startswith("-"):
-            end = allowed_index(str_selector[1:]) + 1
-        else:
-            start, end, *rest = str_selector.split("-")
-            if len(rest):
-                # more than one - separators
-                raise TypeError("invalid range, got more than one -")
-            start, end = allowed_index(start), allowed_index(end) + 1
+        l, r = str_selector.split("-", 1)
+        start = allowed_index(l) if l else 0
+        end = (allowed_index(r) + 1) if r else None
+
         if start > end - 1:
             raise ValueError(
                 f"invalid range, start ({start + 1}) cannot be greater than end ({end})"
             )
+
         index = slice(start, end)
     else:
         index = allowed_index(str_selector)
@@ -65,7 +59,7 @@ def process(line, args):
         field_delimiter = ""
         row = line
         selectors = args.character_selectors
-    indices = select_fields(len(row), selectors)
+    indices = select_fields(len(row), selectors)  # can be cached per row length
     if not args.complement:
         output_fields = [row[i] for i in indices]
     else:
