@@ -26,7 +26,10 @@ def allowed_selector(str_selector):
                 # more than one - separators
                 raise TypeError("invalid range, got more than one -")
             start, end = allowed_index(start), allowed_index(end) + 1
-
+        if start > end - 1:
+            raise ValueError(
+                f"invalid range, start ({start + 1}) cannot be greater than end ({end})"
+            )
         index = slice(start, end)
     else:
         index = allowed_index(str_selector)
