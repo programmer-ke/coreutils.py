@@ -2,6 +2,10 @@
 import argparse
 import sys
 import re
+from collections import namedtuple
+
+
+Script = namedtuple("Script", ["address", "pattern", "replacement", "modifier"])
 
 
 def script_fmt(script):
@@ -11,14 +15,14 @@ def script_fmt(script):
 
     parts = script.split("s", 1)
     if len(parts) != 2:
-        raise argparse.ArgumentError(f"Invalid script: {parts}")
+        raise argparse.ArgumentTypeError(f"Invalid script: {parts}")
     address, replace_args = parts
     parts = replace_args.split("/")
     if len(parts) != 4:
-        raise argparse.ArgumentError(f"Invalid replacement arguments: {parts}")
+        raise argparse.ArgumentTypeError(f"Invalid replacement arguments: {parts}")
     _, pattern, replacement, modifier = parts
     if modifier and modifier != "g":
-        raise argparse.ArgumentError(f"Invalid modifier: {modifier}")
+        raise argparse.ArgumentTypeError(f"Invalid modifier: {modifier}")
     try:
         if "," in address:
             start, end = address.split(",", 1)
@@ -32,39 +36,36 @@ def script_fmt(script):
                 raise ValueError(f"invalid address: {address}")
 
     except (TypeError, ValueError) as exc:
-        raise argparse.ArgumentError(exc)
+        raise argparse.ArgumentTypeError(exc)
 
-    return [address, pattern, replacement, modifier]
+    return Script(address, re.compile(pattern), replacement, modifier)
 
 
 def process(file, scripts):
 
     for i, line in enumerate(file):
-        for s in scripts:
-            address, pattern, replacement, modifier = s
-            count = 0 if modifier else 1
+        for script in scripts:
+            count = 0 if script.modifier else 1
 
-            if not address:
+            if not script.address:
                 do_search = True
-            elif isinstance(address, tuple):
-                start, end = address
+            elif isinstance(script.address, tuple):
+                start, end = script.address
                 do_search = start <= i + 1 <= end
             else:
-                do_search = i + 1 == address
+                do_search = i + 1 == script.address
 
             if do_search:
-                line = pattern.sub(replacement, line, count)
+                line = script.pattern.sub(script.replacement, line, count)
         yield line
 
 
 def main(args):
     scripts = []
-    pattern_index = 1
-    for s in [args.script] + (args.scripts or []):
-        if not s:
+    for script in [args.script] + (args.scripts or []):
+        if not script:
             continue
-        s[pattern_index] = re.compile(s[pattern_index])
-        scripts.append(s)
+        scripts.append(script)
     outputs = process(sys.stdin, scripts)
     for l in outputs:
         print(l, end="")
