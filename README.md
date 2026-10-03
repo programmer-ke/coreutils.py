@@ -173,3 +173,42 @@ cat data/file1.txt | ./grep two
 ```
 
 </details>
+
+<details>
+<summary>cut</summary>
+
+## cut
+
+Supported behaviour:
+
+### 1) Extracting fields from stdin with default tab separator
+
+```bash
+printf "a\tb\tc\n" | ./cut -f2 
+```
+
+### 2) Extracting fields from argument files and/or stdin
+
+```bash
+printf "a\tb\tc\n" | ./cut -f2 data/file1.txt -
+```
+
+### 3) Using a custom delimiter for selecting and displaying fields
+
+```bash
+./cut -d ':' -f1-2 /etc/passwd
+```
+
+### 4) Extracting by character position
+
+```bash
+printf 'abcd\n' | ./cut -c1-2
+```
+
+### 5) Extracting the complement of the selection
+
+```bash
+printf 'abcd\n' | ./cut -c1-2 --complement
+```
+
+</details>

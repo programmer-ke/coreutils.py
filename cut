@@ -1,0 +1,119 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+import pathlib
+
+
+def allowed_index(str_num):
+    num = int(str_num)
+    if num < 1:
+        raise ValueError(f"invalid index: {num}")
+    zero_indexed = num - 1
+    return zero_indexed
+
+
+def allowed_selector(str_selector):
+    if "-" in str_selector:
+        l, r = str_selector.split("-", 1)
+        start = allowed_index(l) if l else 0
+        end = (allowed_index(r) + 1) if r else None
+
+        if None not in (start, end) and start >= end:
+            raise ValueError(
+                f"invalid range, start ({start + 1}) cannot be greater than end ({end})"
+            )
+
+        index = slice(start, end)
+    else:
+        index = allowed_index(str_selector)
+    return index
+
+
+def selector_specification(str_input):
+    selectors = str_input.replace(",", " ").split()
+    try:
+        selectors = [allowed_selector(s) for s in selectors]
+    except (ValueError, TypeError) as exc:
+        raise argparse.ArgumentTypeError(str(exc))
+    return selectors
+
+
+def select_fields(row_length, selectors):
+    indices = set()
+    for i in selectors:
+        if isinstance(i, slice):
+            for j in list(range(*i.indices(row_length))):
+                indices.add(j)
+        elif -1 < i < row_length:
+            indices.add(i)
+    return sorted(indices)
+
+
+def process(line, args):
+    if args.field_selectors:
+        field_delimiter = args.delimiter or "\t"
+        if field_delimiter not in line:
+            return line
+        row = line.split(field_delimiter)
+        selectors = args.field_selectors
+    elif args.character_selectors:
+        field_delimiter = ""
+        row = line
+        selectors = args.character_selectors
+    indices = select_fields(len(row), selectors)  # can be cached per row length
+    if not args.complement:
+        output_fields = [row[i] for i in indices]
+    else:
+        indices_set = set(indices)
+        output_fields = [item for i, item in enumerate(row) if i not in indices_set]
+    return field_delimiter.join(output_fields)
+
+
+def print_selected(args, file):
+    for line in file:
+        line = line.rstrip("\n")
+        output = process(line, args)
+        print(output)
+
+
+def main(args):
+
+    stdin = None
+    if args.files:
+        for path in args.files:
+            if path == "-":
+                print_selected(args, sys.stdin)
+            else:
+                with open(path, "rt", encoding="utf-8") as f:
+                    print_selected(args, f)
+    else:
+        print_selected(args, sys.stdin)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog="cut", description="Print selected parts of lines"
+    )
+    parser.add_argument("-d", dest="delimiter", help="custom input delimiter")
+    parser.add_argument("files", nargs="*", help="list of files to read")
+    parser.add_argument(
+        "--complement",
+        action="store_true",
+        help="select the complement of selected fields",
+    )
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "-f",
+        dest="field_selectors",
+        type=selector_specification,
+        help="field selectors",
+    )
+    group.add_argument(
+        "-c",
+        dest="character_selectors",
+        type=selector_specification,
+        help="character selectors",
+    )
+    args = parser.parse_args()
+    main(args)
