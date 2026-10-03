@@ -229,7 +229,7 @@ echo 'hello world' | ./sed s/world/there/
 ### 2) Global substitution
 
 ```bash
-echo 'hello hello | ./sed s/hello/there/g
+echo 'hello hello' | ./sed s/hello/there/g
 ```
 
 ### 3) Single line number address
