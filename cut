@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+
+
+def allowed_index(str_num):
+    num = int(str_num)
+    if num < 1:
+        raise ValueError(f"invalid index: {num}")
+    zero_indexed = num - 1
+    return zero_indexed
+
+
+def allowed_selector(str_selector):
+    if "-" in str_selector:
+        start, end = 0, None
+        if str_selector.endswith("-"):
+            start = allowed_index(str_selector[:-1])
+        elif str_selector.startswith("-"):
+            end = allowed_index(str_selector[1:]) + 1
+        else:
+            start, end, *rest = str_selector.split("-")
+            if len(rest):
+                # more than one - separators
+                raise TypeError("invalid range, got more than one -")
+            start, end = allowed_index(start), allowed_index(end) + 1
+
+        index = slice(start, end)
+    else:
+        index = allowed_index(str_selector)
+    return index
+
+
+def field_selector_specifier(str_input):
+    selectors = str_input.replace(",", " ").split()
+    try:
+        selectors = [allowed_selector(s) for s in selectors]
+    except (ValueError, TypeError) as exc:
+        raise argparse.ArgumentTypeError(str(exc))
+    return selectors
+
+
+def select_fields(row_length, selectors):
+    indices = set()
+    for i in selectors:
+        if isinstance(i, slice):
+            for j in list(range(*i.indices(row_length))):
+                indices.add(j)
+        elif -1 < i < row_length:
+            indices.add(i)
+    return sorted(indices)
+
+
+def process(line, field_selectors, field_delimiter="\t"):
+    row = line.split(field_delimiter)
+    indices = select_fields(len(row), field_selectors)
+    output_fields = [row[i] for i in indices]
+    return "\t".join(output_fields)
+
+
+def main(args):
+    for line in sys.stdin:
+        line = line.rstrip("\n")
+        output = process(line, args.field_selectors)
+        print(output)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog="cut", description="Print selected parts of lines"
+    )
+    parser.add_argument(
+        "-f",
+        dest="field_selectors",
+        type=field_selector_specifier,
+        help="field selectors",
+        required=True,
+    )
+    args = parser.parse_args()
+    main(args)

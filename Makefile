@@ -1,4 +1,4 @@
-.PHONY: cat find grep
+.PHONY: cat find grep cut
 
 all:	cat find grep
 cat:
@@ -9,3 +9,6 @@ find:
 
 grep:
 	bash tests/test_grep.sh
+
+cut:
+	bash tests/test_cut.sh

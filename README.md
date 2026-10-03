@@ -173,3 +173,18 @@ cat data/file1.txt | ./grep two
 ```
 
 </details>
+
+<details>
+<summary>cut</summary>
+
+## cut
+
+Supported behaviour:
+
+### 1) Extracting fields from stdin with default tab separator
+
+```bash
+printf "a\tb\tc\n" | ./cut -f2 
+```
+
+</details>
