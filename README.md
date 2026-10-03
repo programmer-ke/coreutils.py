@@ -212,3 +212,41 @@ printf 'abcd\n' | ./cut -c1-2 --complement
 ```
 
 </details>
+
+<details>
+<summary>sed</summary>
+
+## sed
+
+Behaviours implemented
+
+### 1) Simple substitution
+
+```bash
+echo 'hello world' | ./sed s/world/there/
+```
+
+### 2) Global substitution
+
+```bash
+echo 'hello hello' | ./sed s/hello/there/g
+```
+
+### 3) Single line number address
+
+```bash
+printf "line1\nline2\nline3\n" | ./sed '2s/line/LINE/'
+```
+
+### 3) Line number range address
+
+```bash
+printf "line1\nline2\nline3\n" | ./sed '2,3s/line/LINE/'
+```
+
+### 4) Mutiple scripts
+```bash
+echo "apple banana" | ./sed -e 's/apple/orange/' -e 's/banana/grape/'
+```
+
+</details>

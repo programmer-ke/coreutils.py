@@ -1,6 +1,6 @@
-.PHONY: cat find grep cut
+.PHONY: cat find grep cut sed
 
-all:	cat find grep cut
+all:	cat find grep cut sed
 cat:
 	bash tests/test_cat.sh
 
@@ -12,3 +12,6 @@ grep:
 
 cut:
 	bash tests/test_cut.sh
+
+sed:
+	bash tests/test_sed.sh
