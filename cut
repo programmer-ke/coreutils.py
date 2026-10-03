@@ -33,7 +33,7 @@ def allowed_selector(str_selector):
     return index
 
 
-def field_selector_specifier(str_input):
+def selector_specification(str_input):
     selectors = str_input.replace(",", " ").split()
     try:
         selectors = [allowed_selector(s) for s in selectors]
@@ -53,9 +53,16 @@ def select_fields(row_length, selectors):
     return sorted(indices)
 
 
-def process(line, field_selectors, field_delimiter="\t"):
-    row = line.split(field_delimiter)
-    indices = select_fields(len(row), field_selectors)
+def process(line, args):
+    if args.field_selectors:
+        field_delimiter = args.delimiter or "\t"
+        row = line.split(field_delimiter)
+        selectors = args.field_selectors
+    elif args.character_selectors:
+        field_delimiter = ""
+        row = line
+        selectors = args.character_selectors
+    indices = select_fields(len(row), selectors)
     output_fields = [row[i] for i in indices]
     return field_delimiter.join(output_fields)
 
@@ -63,8 +70,7 @@ def process(line, field_selectors, field_delimiter="\t"):
 def print_selected(args, file):
     for line in file:
         line = line.rstrip("\n")
-        input_delimiter = args.delimiter or "\t"
-        output = process(line, args.field_selectors, input_delimiter)
+        output = process(line, args)
         print(output)
 
 
@@ -86,14 +92,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="cut", description="Print selected parts of lines"
     )
-    parser.add_argument(
-        "-f",
-        dest="field_selectors",
-        type=field_selector_specifier,
-        help="field selectors",
-        required=True,
-    )
     parser.add_argument("-d", dest="delimiter", help="custom input delimiter")
     parser.add_argument("files", nargs="*", help="list of files to read")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "-f",
+        dest="field_selectors",
+        type=selector_specification,
+        help="field selectors",
+    )
+    group.add_argument(
+        "-c",
+        dest="character_selectors",
+        type=selector_specification,
+        help="character selectors",
+    )
     args = parser.parse_args()
     main(args)

@@ -199,4 +199,10 @@ printf "a\tb\tc\n" | ./cut -f2 data/file1.txt -
 ./cut -d ':' -f1-2 /etc/passwd
 ```
 
+### 4) Extracting by character position
+
+```bash
+printf 'abcd\n' | ./cut -c1-2
+```
+
 </details>
