@@ -212,3 +212,18 @@ printf 'abcd\n' | ./cut -c1-2 --complement
 ```
 
 </details>
+
+<details>
+<summary>sed</summary>
+
+## sed
+
+Behaviours implemented
+
+### 1) Simple substitution
+
+```bash
+echo 'hello world' | ./sed s/world/there/
+```
+
+</details>
