@@ -26,8 +26,8 @@ expected=$(mktemp)
 trap 'rm -f "$actual" "$expected"' EXIT
 
 # 1. Simple substitution
-echo "hello world" | "$SED" 's/world/there/' > "$actual"
-echo "hello world" | sed 's/world/there/' > "$expected"
+echo "hello world. it's a wonderful world" | "$SED" 's/world/there/' > "$actual"
+echo "hello world. it's a wonderful world" | sed 's/world/there/' > "$expected"
 assert_equal "simple substitution" "$actual" "$expected"
 
 # 2. Global substitution
