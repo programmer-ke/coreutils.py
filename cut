@@ -19,7 +19,7 @@ def allowed_selector(str_selector):
         start = allowed_index(l) if l else 0
         end = (allowed_index(r) + 1) if r else None
 
-        if start > end - 1:
+        if None not in (start, end) and start >= end:
             raise ValueError(
                 f"invalid range, start ({start + 1}) cannot be greater than end ({end})"
             )
