@@ -187,4 +187,16 @@ Supported behaviour:
 printf "a\tb\tc\n" | ./cut -f2 
 ```
 
+### 2) Extracting fields from argument files and/or stdin
+
+```bash
+printf "a\tb\tc\n" | ./cut -f2 data/file1.txt -
+```
+
+### 3) Using a custom delimiter for selecting and displaying fields
+
+```bash
+./cut -d ':' -f1-2 /etc/passwd
+```
+
 </details>

@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+import pathlib
 
 
 def allowed_index(str_num):
@@ -56,14 +57,29 @@ def process(line, field_selectors, field_delimiter="\t"):
     row = line.split(field_delimiter)
     indices = select_fields(len(row), field_selectors)
     output_fields = [row[i] for i in indices]
-    return "\t".join(output_fields)
+    return field_delimiter.join(output_fields)
+
+
+def print_selected(args, file):
+    for line in file:
+        line = line.rstrip("\n")
+        input_delimiter = args.delimiter or "\t"
+        output = process(line, args.field_selectors, input_delimiter)
+        print(output)
 
 
 def main(args):
-    for line in sys.stdin:
-        line = line.rstrip("\n")
-        output = process(line, args.field_selectors)
-        print(output)
+
+    stdin = None
+    if args.files:
+        for path in args.files:
+            if path == "-":
+                print_selected(args, sys.stdin)
+            else:
+                with open(path, "rt", encoding="utf-8") as f:
+                    print_selected(args, f)
+    else:
+        print_selected(args, sys.stdin)
 
 
 if __name__ == "__main__":
@@ -77,5 +93,7 @@ if __name__ == "__main__":
         help="field selectors",
         required=True,
     )
+    parser.add_argument("-d", dest="delimiter", help="custom input delimiter")
+    parser.add_argument("files", nargs="*", help="list of files to read")
     args = parser.parse_args()
     main(args)
