@@ -53,6 +53,8 @@ def select_fields(row_length, selectors):
 def process(line, args):
     if args.field_selectors:
         field_delimiter = args.delimiter or "\t"
+        if field_delimiter not in line:
+            return line
         row = line.split(field_delimiter)
         selectors = args.field_selectors
     elif args.character_selectors:
