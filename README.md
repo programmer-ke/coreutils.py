@@ -205,4 +205,10 @@ printf "a\tb\tc\n" | ./cut -f2 data/file1.txt -
 printf 'abcd\n' | ./cut -c1-2
 ```
 
+### 5) Extracting the complement of the selection
+
+```bash
+printf 'abcd\n' | ./cut -c1-2 --complement
+```
+
 </details>
