@@ -1,6 +1,9 @@
-.PHONY: cat find grep cut sed
+TARGETS := cat find grep cut sed sort
 
-all:	cat find grep cut sed
+.PHONY: $(TARGETS)
+
+all:	$(TARGETS)
+
 cat:
 	bash tests/test_cat.sh
 
@@ -15,3 +18,6 @@ cut:
 
 sed:
 	bash tests/test_sed.sh
+
+sort:
+	bash tests/test_sort.sh
