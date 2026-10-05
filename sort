@@ -29,21 +29,29 @@ def sort(lines, is_numeric, is_reverse):
     return sorted(lines, key=sort_key, reverse=is_reverse)
 
 
-def process(file, args):
-    output = sort(file, args.numeric_sort, args.reverse_sort)
-    for line in output:
-        end = "" if line.endswith("\n") else "\n"
-        print(line, end=end)
+def process(input_content, args):
+    lines = [line for file in input_content for line in file]
+    output = sort(lines, args.numeric_sort, args.reverse_sort)
+    return output
+
+
+def read_file(file):
+    if hasattr(file, 'read'):
+        # opened file
+        return [l for l in file]
+    with open(file, 'rt', encoding="utf-8") as f:
+        return [l for l in f]
 
 
 def main(args):
-    if args.files:
-        for filename in args.files:
-            with open(filename, "rt", encoding="utf-8") as f:
-                process(f, args)
-    else:
-        process(sys.stdin, args)
 
+    input_content = [read_file(fname) for fname in args.files]
+    if not input_content:
+        input_content = [read_file(sys.stdin)]
+
+    for line in process(input_content, args):
+        end = "" if line.endswith("\n") else "\n"
+        print(line, end=end)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="sort", description="sort lines")
