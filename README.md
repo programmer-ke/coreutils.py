@@ -250,3 +250,37 @@ echo "apple banana" | ./sed -e 's/apple/orange/' -e 's/banana/grape/'
 ```
 
 </details>
+
+<details>
+<summary>sort</summary>
+
+## sort
+
+Behaviour supported
+
+### 1) Sorting from stdin
+
+```bash
+printf "c\na\nb\n" | ./sort 
+```
+
+### 2) Sorting from file(s)
+
+```bash
+./sort data/multiline.txt
+```
+
+### 3) Doing a numeric sort
+
+```bash
+printf "10\n2\n1\n" | ./sort -n
+```
+
+### 3) Doing a reverse sort
+
+```bash
+./sort -r data/multiline.txt
+```
+
+</details>
+

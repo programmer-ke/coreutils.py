@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+import argparse
+import sys
+import locale
+import re
+
+
+NUM_RE = re.compile(r"^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?")
+
+
+def numeric_key(line):
+    """Prepares a line for numeric comparison
+
+    - remove leading whitespace
+    - determine numeric prefix or set to 0
+    - use the entire line as tie breaker
+    """
+    line = line.lstrip()
+    numeric_match = NUM_RE.match(line)
+    if numeric_match:
+        numeric_prefix = float(numeric_match.group())
+    else:
+        numeric_prefix = 0.0
+    return (numeric_prefix, line)
+
+
+def sort(lines, is_numeric, is_reverse):
+    sort_key = numeric_key if is_numeric else locale.strxfrm
+    return sorted(lines, key=sort_key, reverse=is_reverse)
+
+
+def process(file, args):
+    output = sort(file, args.numeric_sort, args.reverse_sort)
+    for line in output:
+        end = "" if line.endswith("\n") else "\n"
+        print(line, end=end)
+
+
+def main(args):
+    if args.files:
+        for filename in args.files:
+            with open(filename, "rt", encoding="utf-8") as f:
+                process(f, args)
+    else:
+        process(sys.stdin, args)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(prog="sort", description="sort lines")
+    parser.add_argument("files", nargs="*", help="list of files to sort")
+    parser.add_argument(
+        "-n", dest="numeric_sort", action="store_true", help="do a numeric sort"
+    )
+    parser.add_argument(
+        "-r", dest="reverse_sort", action="store_true", help="do a reverse sort"
+    )
+    args = parser.parse_args()
+    main(args)
