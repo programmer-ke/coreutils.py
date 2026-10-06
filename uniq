@@ -29,10 +29,8 @@ def process(file, args):
         "count": 0,
     }
 
-    for line in unique_gb(file, args.show_count, lineinfo):
+    for line in unique(file, args.show_count, lineinfo):
         print(line)
-    #if args.show_count and lineinfo["content"] is not None:
-        #print(format_count(lineinfo["content"], lineinfo["count"]))
 
 
 def format_count(line, count):
