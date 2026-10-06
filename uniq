@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+import itertools
+
+
+def unique(file, show_count, lineinfo):
+    for key, group in itertools.groupby(file, lambda l: l.rstrip("\n")):
+        if show_count:
+            count = sum(1 for _ in group)
+            yield format_count(key, count)
+        else:
+            yield key
+
+
+def main(args):
+    if args.input:
+        with open(args.input, "rt", encoding="utf8") as f:
+            process(f, args)
+    else:
+        process(sys.stdin, args)
+
+
+def process(file, args):
+
+    lineinfo = {
+        "content": None,
+        "count": 0,
+    }
+
+    for line in unique_gb(file, args.show_count, lineinfo):
+        print(line)
+    #if args.show_count and lineinfo["content"] is not None:
+        #print(format_count(lineinfo["content"], lineinfo["count"]))
+
+
+def format_count(line, count):
+    return f"{count:7d} {line}"
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog="uniq", description="report or omit repeated lines"
+    )
+    parser.add_argument("input", nargs="?", help="file to deduplicate")
+    parser.add_argument(
+        "-c",
+        dest="show_count",
+        action="store_true",
+        help="prefix by occurrences",
+    )
+    args = parser.parse_args()
+    main(args)

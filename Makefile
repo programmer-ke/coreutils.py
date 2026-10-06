@@ -1,4 +1,4 @@
-TARGETS := cat find grep cut sed sort
+TARGETS := cat find grep cut sed sort uniq
 
 .PHONY: $(TARGETS)
 
@@ -21,3 +21,6 @@ sed:
 
 sort:
 	bash tests/test_sort.sh
+
+uniq:
+	bash tests/test_uniq.sh

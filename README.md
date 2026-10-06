@@ -282,5 +282,23 @@ printf "10\n2\n1\n" | ./sort -n
 ./sort -r data/multiline.txt
 ```
 
-</details>
+<details>
+<summary>uniq</summary>
 
+## uniq
+
+Supported:
+
+### 1) Omit consecutively repeated lines
+
+```bash
+printf "abc\nabc\ndef" | ./uniq
+```
+
+### 2) Show a count of consecutive occurrences
+
+```bash
+printf "abc\nabc\ndef" | ./uniq -c
+```
+
+</details>
