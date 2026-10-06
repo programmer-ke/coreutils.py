@@ -282,6 +282,8 @@ printf "10\n2\n1\n" | ./sort -n
 ./sort -r data/multiline.txt
 ```
 
+</details>
+
 <details>
 <summary>uniq</summary>
 
