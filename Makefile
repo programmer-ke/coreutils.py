@@ -1,4 +1,4 @@
-TARGETS := cat find grep cut sed sort uniq history_pipeline
+TARGETS := cat find grep cut sed sort uniq history_pipeline hexdump
 
 .PHONY: $(TARGETS)
 
@@ -24,6 +24,9 @@ sort:
 
 uniq:
 	bash tests/test_uniq.sh
+
+hexdump:
+	bash tests/test_hexdump.sh
 
 history_pipeline:
 	bash tests/test_history_pipeline.sh

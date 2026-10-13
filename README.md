@@ -304,3 +304,24 @@ printf "abc\nabc\ndef" | ./uniq -c
 ```
 
 </details>
+
+<details>
+<summary>hexdump</summary>
+
+## hexdump
+
+Supported:
+
+### 1) Show default (byte order dependent) view
+
+```bash
+./hexdump < data/multiline.txt
+```
+
+### 2) Show the canonical (hex+ascii) view
+
+```bash
+./hexdump -C < data/multiline.txt
+```
+
+</details>
