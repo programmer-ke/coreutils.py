@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+import argparse
+import sys
+import string
+
+MAX_WIDTH = 16
+
+
+def format_row(offset, line, canonical_display=False):
+    if canonical_display:
+        wordsize, offset_fmt, word_fmt = 1, "08x", "02x"
+    else:
+        wordsize, offset_fmt, word_fmt = 2, "07x", "04x"
+
+    displayed_offset = format(offset, offset_fmt)
+    words = [line[i:i+wordsize] for i in range(0, len(line), wordsize)]
+    words = [int.from_bytes(w, sys.byteorder) for w in words]
+    words = [format(w, word_fmt) for w in words]
+    if canonical_display:
+        # ensure we have 16 values to match expected format
+        words = words + ["  " for _ in range(16 - len(words))]
+        hex_left = " ".join(w for w in words[0:8])
+        hex_right = " ".join(w for w in words[8:])
+        printable = set(string.printable)
+        ascii_chars = "".join([chr(c) if 0x20 <= c <= 0x7e else "." for c in line])
+        ascii_col = f"|{ascii_chars}|"
+        formatted = f'{displayed_offset}  {hex_left}  {hex_right}  {ascii_col}'
+    else:
+        row = " ".join(words)
+        row = format(row, "<39")
+        formatted = f"{displayed_offset} {row}"
+
+    return formatted
+    
+
+def process(file_input, args):
+    input_length = len(file_input)
+    for offset in range(0, input_length, MAX_WIDTH):
+        row = file_input[offset : offset + MAX_WIDTH]
+        yield format_row(offset, row, args.C)
+    if input_length:
+        yield format(input_length, "08x" if args.C else "07x")
+
+def main(args):
+    file_content = sys.stdin.buffer.read()
+    for l in process(file_content, args):
+        print(l)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog="hexdump", description="Display input content in hexadecimal"
+    )
+    parser.add_argument("-C", action="store_true", help="Canonical display")
+    args = parser.parse_args()
+    main(args)
